@@ -1,0 +1,169 @@
+---
+title: "Final Exam"
+author: "Yon Garber"
+date: "12/4/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1-
+1.
+```{r}
+load("refn.RData")
+```
+
+2.
+```{r}
+suppressMessages(library("tidyverse"))
+refn %>%
+  mutate(genre = fct_expand(genre, "crime thriller", "crime drama"),
+         genre = replace(genre, genre == "crime", "crime drama"),
+         genre = replace(genre,
+                         film %in% c("Fear X", "Only God Forgives"),
+                         "crime thriller"),
+         genre = fct_drop(genre))->
+  refn
+refn%>%
+  select(film,genre,date,weekday,rt)
+```
+3. 
+```{r}
+refn$weekday <-fct_rev(refn$weekday)
+ggplot(data = refn, aes(x=weekday, y=rt))+
+  geom_point()+
+  theme_bw()+
+  ylab("Rotten Tomatoes")+
+  xlab("Weekday")+
+  scale_x_discrete(drop=FALSE)
+levels(refn$weekday)
+
+```
+##Exersice 2-
+1.
+```{r}
+college <- read_csv("college_score.csv")
+college %>%
+  mutate(MN_EARN_WNE_P6 = parse_number(MN_EARN_WNE_P6),
+         GRAD_DEBT_MDN= parse_number(GRAD_DEBT_MDN),
+         AGE_ENTRY = parse_number(AGE_ENTRY))->
+  college
+```
+2.
+```{r}
+college%>% 
+  drop_na(COSTT4_A)->
+  college2
+ggplot(data = college2, aes(y=MN_EARN_WNE_P6, x= COSTT4_A, colour=factor(ICLEVEL)))+
+  geom_point()+
+  geom_smooth(method = lm, se=FALSE)+
+  ylab("mean earnings of students six years after graduation")+
+  xlab("average cost of attendance")
+
+```
+Yes, there seems to be a positive association between average cost of attendence and the mean earnings of students six years after graduation for each of the level of institutions. We can see the regression lines for each of the levels.
+
+3.
+```{r}
+suppressMessages(library("tidyverse"))
+college %>%
+  ggplot(aes(x= AGE_ENTRY))+
+  geom_histogram(bins=30, fill="white", color="black")+
+  theme_bw()+
+  xlab("Average Age to Enter College")
+```
+4. 
+```{r}
+college%>%
+  filter(AGE_ENTRY!="PrivacySuppressed")%>%
+  arrange(desc(AGE_ENTRY))%>%
+  select(UNITID,INSTNM,AGE_ENTRY)->
+  college4
+head(college4, n=10)
+
+```
+5.
+```{r}
+college%>%
+  mutate(SAT_AVG_RANK = round(rank(-SAT_AVG)),
+         ADM_RATE_RANK = round(rank(ADM_RATE, na.last = TRUE)),
+         MN_EARN_WNE_P6_RANK = round(rank(-MN_EARN_WNE_P6,na.last = TRUE)))->
+  college
+college
+```
+
+
+6.
+```{r} 
+college%>% 
+  group_by(UNITID)%>%
+  mutate(RANK=round((SAT_AVG_RANK+ADM_RATE_RANK+MN_EARN_WNE_P6_RANK)/3))->
+  college
+college
+```
+
+
+```{r}
+college%>%
+  arrange(RANK)%>%
+  select(UNITID,INSTNM,RANK)->
+  college6
+head(college6, n=10)
+```
+
+7.
+```{r}
+college6%>%
+  filter(INSTNM=="American University")->
+  college7
+college7
+```
+8.
+```{r}
+college%>%    
+  filter(str_detect(INSTNM,"American University", negate = FALSE))->
+  americandf
+americandf
+```
+
+## Exersice 3-
+1.
+```{r}
+scrab <- read_csv("subscrab.csv")
+```
+2.
+```{r}
+scrab%>%
+  mutate(count_double_letter= str_count(word,"[A]{2}|[B]{2}|[C]{2}|[D]{2}|[E]{2}|[F]{2}|[G]{2}|[H]{2}|[I]{2}|[G]{2}|[K]{2}|[L]{2}|[M]{2}|[N]{2}|[O]{2}|[P]{2}|[Q]{2}|[R]{2}|[S]{2}|[T]{2}|[U]{2}|[V]{2}|[W]{2}|[X]{2}|[Y]{2}|[Z]{2}"))->
+  scrabdouble
+scrabdouble
+```
+
+3.
+```{r}
+ggplot(data=scrabdouble, aes(x=count_double_letter))+
+  geom_histogram(bins=4)+
+  ggtitle("Distribution of the number of double letters")+
+  xlab("Number of double letters in each word")
+```
+4.
+```{r}
+scrabdouble%>%
+  mutate(length=str_length(word))%>%
+  filter(count_double_letter==3)%>%
+  arrange(length)
+```
+The shortest word is AARRGHH.
+
+
+
+
+
+
+
+
+
+
+
